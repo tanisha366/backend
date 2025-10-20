@@ -185,7 +185,7 @@
             gap: 1.5rem;
         }
 
-        .theme-toggle, .music-toggle {
+        .theme-toggle {
             background: rgba(255, 255, 255, 0.1);
             border: none;
             width: 45px;
@@ -200,13 +200,12 @@
             font-size: 1.2rem;
         }
 
-        body.light-mode .theme-toggle, 
-        body.light-mode .music-toggle {
+        body.light-mode .theme-toggle {
             background: rgba(0, 0, 0, 0.1);
             color: #333;
         }
 
-        .theme-toggle:hover, .music-toggle:hover {
+        .theme-toggle:hover {
             background: var(--primary);
             transform: translateY(-3px);
             box-shadow: 0 10px 20px rgba(108, 99, 255, 0.3);
@@ -1265,6 +1264,119 @@
             50% { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
         }
+
+        /* Enhanced Blog Section */
+        .blog-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 2.5rem;
+        }
+
+        .blog-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            overflow: hidden;
+            transition: var(--transition);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            transform: translateY(50px);
+            opacity: 0;
+            animation: slideUp 0.8s ease forwards;
+        }
+
+        body.light-mode .blog-card {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        @keyframes slideUp {
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .blog-card:hover {
+            transform: translateY(-15px) scale(1.02);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+            border-color: var(--primary);
+        }
+
+        .blog-img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            transition: var(--transition);
+        }
+
+        .blog-card:hover .blog-img {
+            transform: scale(1.05);
+        }
+
+        .blog-content {
+            padding: 2rem;
+        }
+
+        .blog-title {
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+            transition: var(--transition);
+        }
+
+        .blog-card:hover .blog-title {
+            color: var(--accent);
+        }
+
+        .blog-summary {
+            color: var(--gray);
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        body.light-mode .blog-summary {
+            color: #666;
+        }
+
+        .blog-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            color: var(--gray);
+        }
+
+        body.light-mode .blog-meta {
+            color: #666;
+        }
+
+        .read-more {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+            padding: 0.7rem 1.5rem;
+            border-radius: 8px;
+            background: rgba(108, 99, 255, 0.1);
+        }
+
+        .read-more:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        /* Stagger animation for blog cards */
+        .blog-card:nth-child(1) { animation-delay: 0.1s; }
+        .blog-card:nth-child(2) { animation-delay: 0.2s; }
+        .blog-card:nth-child(3) { animation-delay: 0.3s; }
+        .blog-card:nth-child(4) { animation-delay: 0.4s; }
+        .blog-card:nth-child(5) { animation-delay: 0.5s; }
+        .blog-card:nth-child(6) { animation-delay: 0.6s; }
     </style>
 </head>
 <body>
@@ -1285,9 +1397,6 @@
             <a href="#blog">Blog</a>
         </div>
         <div class="nav-actions">
-            <button class="music-toggle" id="musicToggle">
-                <i class="fas fa-music"></i>
-            </button>
             <button class="theme-toggle" id="themeToggle">
                 <i class="fas fa-moon"></i>
             </button>
@@ -1489,9 +1598,6 @@
                     <div id="formMessage" class="message"></div>
                 </div>
             </div>
-
-            <!-- MESSAGES VIEWER REMOVED - Messages are stored in backend but not displayed -->
-            
         </div>
     </section>
 
@@ -1540,7 +1646,6 @@
     <script>
     // DOM Elements
     const themeToggle = document.getElementById('themeToggle');
-    const musicToggle = document.getElementById('musicToggle');
     const body = document.body;
     const skillBars = document.querySelectorAll('.skill-progress');
     const filterButtons = document.querySelectorAll('.filter-btn');
@@ -2004,8 +2109,8 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                },
+                    'Accept': 'application/json',
+                    },
                 body: JSON.stringify({ name, email, message: messageText }),
             });
 
@@ -2034,29 +2139,6 @@
         formMessage.style.display = 'block';
         setTimeout(() => { formMessage.style.display = 'none'; }, 5000);
     }
-
-    // Music Toggle
-    let backgroundMusic = null;
-    musicToggle.addEventListener('click', () => {
-        const icon = musicToggle.querySelector('i');
-        if (!backgroundMusic) {
-            backgroundMusic = new Audio();
-            backgroundMusic.loop = true;
-            icon.classList.remove('fa-music');
-            icon.classList.add('fa-volume-mute');
-            showFormMessage('🎵 Music feature coming soon!', 'success');
-        } else {
-            if (backgroundMusic.paused) {
-                backgroundMusic.play();
-                icon.classList.remove('fa-volume-mute');
-                icon.classList.add('fa-volume-up');
-            } else {
-                backgroundMusic.pause();
-                icon.classList.remove('fa-volume-up');
-                icon.classList.add('fa-volume-mute');
-            }
-        }
-    });
     </script>
 </body>
 </html>

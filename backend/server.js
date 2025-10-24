@@ -1,105 +1,90 @@
-const express = require('express');
-const cors = require('cors');
+import express from 'express';
+import mongoose from 'mongoose';
+import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import compression from 'compression';
+import morgan from 'morgan';
+import dotenv from 'dotenv';
+import noteRoutes from './routes/noteRoutes.js'; // ✅ only this
+
+dotenv.config();
+
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
-app.use(cors());
-app.use(express.json());
+// 🛡 Security Middleware
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
 
-// In-memory storage (no database needed)
-let messages = [];
-let messageId = 1;
+// 🚦 Rate Limiter
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 1000,
+  message: {
+    success: false,
+    message: 'Too many requests, try again later.'
+  }
+});
+app.use(limiter);
 
-// Health check
+// 🌍 CORS
+app.use(cors({
+  origin: process.env.FRONTEND_URL || ["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:5500"],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// 🗜 Compression + Logging
+app.use(compression());
+app.use(morgan('combined'));
+
+// 🧠 Body Parser
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+// 🧩 MongoDB Connection
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mynotes-pro';
+mongoose.connect(MONGODB_URI)
+
+.then(() => console.log('✅ MongoDB connected successfully'))
+.catch((err) => {
+  console.error('❌ MongoDB connection error:', err);
+  process.exit(1);
+});
+
+// 🗂 Routes
+app.use('/api/notes', noteRoutes);
+
+// 🩺 Health Check
 app.get('/api/health', (req, res) => {
-    res.json({ 
-        status: 'OK', 
-        message: 'Server is running!',
-        timestamp: new Date().toISOString()
-    });
+  res.status(200).json({
+    success: true,
+    message: 'Backend is running fine 🚀',
+    db: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+  });
 });
 
-// Get all messages
-app.get('/api/messages', (req, res) => {
-    res.json({
-        success: true,
-        message: 'Messages retrieved successfully',
-        data: messages
-    });
+// 🚫 404 Handler
+app.use('/api/*', (req, res) => {
+  res.status(404).json({
+    success: false,
+    message: `API endpoint ${req.originalUrl} not found`
+  });
 });
 
-// Create new message
-app.post('/api/messages', (req, res) => {
-    try {
-        const { name, email, message } = req.body;
-
-        // Basic validation
-        if (!name || !email || !message) {
-            return res.status(400).json({
-                success: false,
-                message: 'All fields are required'
-            });
-        }
-
-        const newMessage = {
-            id: messageId++,
-            name: name.trim(),
-            email: email.trim(),
-            message: message.trim(),
-            date: new Date().toISOString()
-        };
-
-        messages.push(newMessage);
-        
-        res.status(201).json({
-            success: true,
-            message: 'Message sent successfully!',
-            data: newMessage
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: 'Failed to send message',
-            error: error.message
-        });
-    }
+// 🧯 Global Error Handler
+app.use((err, req, res, next) => {
+  console.error('🚨 Error:', err);
+  res.status(500).json({
+    success: false,
+    message: err.message || 'Internal server error'
+  });
 });
 
-// Delete all messages
-app.delete('/api/messages', (req, res) => {
-    const count = messages.length;
-    messages = [];
-    messageId = 1;
-    
-    res.json({
-        success: true,
-        message: `All messages (${count}) deleted successfully`
-    });
-});
-
-// Get message count
-app.get('/api/messages/count', (req, res) => {
-    res.json({
-        success: true,
-        data: { count: messages.length }
-    });
-});
-
-// Root route
-app.get('/', (req, res) => {
-    res.json({ 
-        message: 'Portfolio Backend API is running!',
-        endpoints: {
-            health: '/api/health',
-            messages: '/api/messages',
-            count: '/api/messages/count'
-        }
-    });
-});
-
-app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-    console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
-    console.log(`📧 Messages API: http://localhost:${PORT}/api/messages`);
-    console.log(`💾 Using in-memory storage (no MongoDB needed)`);
+// 🚀 Start Server
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🎉 Server running on port ${PORT}`);
 });

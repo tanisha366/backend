@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyNotes Pro - Professional Journal</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        :root {
+            --primary-color: #1a73e8;
+            --primary-light: #e8f0fe;
+            --secondary-color: #5f6368;
+            --bg-color: #ffffff;
+            --surface-color: #f8f9fa;
+            --border-color: #dadce0;
+            --text-primary: #202124;
+            --text-secondary: #5f6368;
+        }
+        
+        .dark {
+            --primary-color: #8ab4f8;
+            --primary-light: #202124;
+            --secondary-color: #9aa0a6;
+            --bg-color: #202124;
+            --surface-color: #2d2e30;
+            --border-color: #5f6368;
+            --text-primary: #e8eaed;
+            --text-secondary: #9aa0a6;
+        }
+        
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            width: 280px;
+            background-color: var(--bg-color);
+            border-right: 1px solid var(--border-color);
+            padding: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .main-content {
+            flex: 1;
+            padding: 24px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            padding: 8px 16px;
+            margin-bottom: 16px;
+        }
+        
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1a73e8, #34a853);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            margin-right: 12px;
+        }
+        
+        .logo-text {
+            font-size: 22px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border-radius: 0 25px 25px 0;
+            margin-bottom: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--text-secondary);
+        }
+        
+        .nav-item:hover {
+            background-color: var(--primary-light);
+            color: var(--primary-color);
+        }
+        
+        .nav-item.active {
+            background-color: var(--primary-light);
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+        
+        .nav-icon {
+            margin-right: 16px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .notes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 24px;
+        }
+        
+        .note-card {
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .note-card:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .note-title {
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+        
+        .note-content {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.4;
+            margin-bottom: 12px;
+            white-space: pre-line;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 10;
+            -webkit-box-orient: vertical;
+            flex-grow: 1;
+        }
+        
+        .note-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: auto;
+        }
+        
+        .note-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin: 12px 0;
+        }
+        
+        .note-tag {
+            background-color: var(--primary-light);
+            color: var(--primary-color);
+            padding: 4px 10px;
+            border-radius: 16px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+        
+        .note-tag:hover {
+            background-color: var(--primary-color);
+            color: white;
+            transform: translateY(-1px);
+        }
+        
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background-color: var(--surface-color);
+            border-radius: 8px;
+            padding: 8px 16px;
+            margin-bottom: 24px;
+            border: 1px solid transparent;
+            transition: all 0.2s ease;
+        }
+        
+        .search-bar:focus-within {
+            border-color: var(--primary-color);
+            background-color: var(--bg-color);
+        }
+        
+        .search-input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            outline: none;
+            color: var(--text-primary);
+            font-size: 16px;
+            padding: 8px;
+        }
+        
+        .note-form {
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .note-form-title {
+            border: none;
+            outline: none;
+            font-size: 16px;
+            font-weight: 500;
+            width: 100%;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+            background: transparent;
+        }
+        
+        .note-form-content {
+            border: none;
+            outline: none;
+            font-size: 14px;
+            width: 100%;
+            min-height: 100px;
+            resize: none;
+            color: var(--text-primary);
+            background: transparent;
+            line-height: 1.5;
+        }
+        
+        .note-form-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 16px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .icon-button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--text-secondary);
+        }
+        
+        .icon-button:hover {
+            background-color: var(--surface-color);
+            transform: scale(1.05);
+        }
+        
+        .submit-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .submit-button:hover {
+            background-color: #1669d6;
+            transform: translateY(-1px);
+        }
+        
+        .submit-button:disabled {
+            background-color: var(--border-color);
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .floating-button {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s ease;
+            z-index: 100;
+        }
+        
+        .floating-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+        
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+        
+        .empty-title {
+            font-size: 20px;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+        
+        .empty-description {
+            font-size: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .theme-toggle {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            background-color: var(--surface-color);
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+        }
+        
+        .theme-toggle:hover {
+            background-color: var(--border-color);
+            transform: scale(1.05);
+        }
+        
+        .tag-filter-section {
+            margin-bottom: 20px;
+            padding: 16px;
+            background-color: var(--surface-color);
+            border-radius: 8px;
+        }
+        
+        .tag-filter-title {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .tag-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .tag-filter {
+            background-color: var(--bg-color);
+            color: var(--text-secondary);
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid var(--border-color);
+        }
+        
+        .tag-filter:hover {
+            background-color: var(--primary-light);
+            color: var(--primary-color);
+        }
+        
+        .tag-filter.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 80px;
+            }
+            
+            .nav-text {
+                display: none;
+            }
+            
+            .logo-text {
+                display: none;
+            }
+            
+            .logo {
+                justify-content: center;
+                padding: 8px 0;
+            }
+            
+            .nav-item {
+                justify-content: center;
+                border-radius: 50%;
+                width: 48px;
+                height: 48px;
+                margin: 0 auto 8px;
+            }
+            
+            .nav-icon {
+                margin-right: 0;
+            }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .slide-in {
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="light">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // Storage functions
+        const storage = {
+            getNotes: () => {
+                try {
+                    return JSON.parse(localStorage.getItem('mynotes-pro')) || [];
+                } catch {
+                    return [];
+                }
+            },
+            saveNotes: (notes) => {
+                localStorage.setItem('mynotes-pro', JSON.stringify(notes));
+            },
+            getSettings: () => {
+                try {
+                    return JSON.parse(localStorage.getItem('mynotes-settings')) || { theme: 'light' };
+                } catch {
+                    return { theme: 'light' };
+                }
+            },
+            saveSettings: (settings) => {
+                localStorage.setItem('mynotes-settings', JSON.stringify(settings));
+            }
+        };
+
+        // Sidebar Component
+        function Sidebar({ activeView, onViewChange }) {
+            const navItems = [
+                { id: 'all', icon: 'fas fa-sticky-note', text: 'All Notes' },
+                { id: 'favorites', icon: 'fas fa-star', text: 'Favorites' },
+                { id: 'archived', icon: 'fas fa-archive', text: 'Archived' },
+                { id: 'trash', icon: 'fas fa-trash', text: 'Trash' }
+            ];
+
+            return React.createElement(
+                'div',
+                { className: 'sidebar' },
+                React.createElement(
+                    'div',
+                    { className: 'logo' },
+                    React.createElement(
+                        'div',
+                        { className: 'logo-icon' },
+                        'MN'
+                    ),
+                    React.createElement(
+                        'div',
+                        { className: 'logo-text' },
+                        'MyNotes Pro'
+                    )
+                ),
+                navItems.map(item => 
+                    React.createElement(
+                        'div',
+                        {
+                            key: item.id,
+                            className: `nav-item ${activeView === item.id ? 'active' : ''}`,
+                            onClick: () => onViewChange(item.id)
+                        },
+                        React.createElement('i', { className: `nav-icon ${item.icon}` }),
+                        React.createElement('span', { className: 'nav-text' }, item.text)
+                    )
+                )
+            );
+        }
+
+        // Tag Filter Component
+        function TagFilter({ tags, activeTag, onTagFilter }) {
+            if (!tags || tags.length === 0) return null;
+
+            return React.createElement(
+                'div',
+                { className: 'tag-filter-section' },
+                React.createElement(
+                    'div',
+                    { className: 'tag-filter-title' },
+                    'Filter by Tags:'
+                ),
+                React.createElement(
+                    'div',
+                    { className: 'tag-filters' },
+                    tags.map(tag => 
+                        React.createElement(
+                            'div',
+                            {
+                                key: tag,
+                                className: `tag-filter ${activeTag === tag ? 'active' : ''}`,
+                                onClick: () => onTagFilter(tag)
+                            },
+                            tag
+                        )
+                    ),
+                    activeTag && React.createElement(
+                        'div',
+                        {
+                            className: 'tag-filter',
+                            onClick: () => onTagFilter(null),
+                            style: { backgroundColor: 'var(--primary-color)', color: 'white' }
+                        },
+                        'Clear Filter'
+                    )
+                )
+            );
+        }
+
+        // Note Card Component
+        function NoteCard({ note, onEdit, onToggleFavorite, onDelete, onTagClick }) {
+            const [showActions, setShowActions] = useState(false);
+
+            const handleFavoriteClick = (e) => {
+                e.stopPropagation();
+                onToggleFavorite(note.id, !note.isFavorite);
+            };
+
+            const handleDeleteClick = (e) => {
+                e.stopPropagation();
+                onDelete(note.id);
+            };
+
+            const handleTagClick = (e, tag) => {
+                e.stopPropagation();
+                onTagClick(tag);
+            };
+
+            const formatDate = (dateString) => {
+                const date = new Date(dateString);
+                const now = new Date();
+                const diffTime = Math.abs(now - date);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                if (diffDays === 1) return 'Yesterday';
+                if (diffDays < 7) return `${diffDays} days ago`;
+                if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+                
+                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            };
+
+            return React.createElement(
+                'div',
+                {
+                    className: 'note-card fade-in',
+                    onClick: () => onEdit(note),
+                    onMouseEnter: () => setShowActions(true),
+                    onMouseLeave: () => setShowActions(false)
+                },
+                note.title && React.createElement(
+                    'div',
+                    { className: 'note-title' },
+                    note.title
+                ),
+                React.createElement(
+                    'div',
+                    { className: 'note-content' },
+                    note.content
+                ),
+                note.tags && note.tags.length > 0 && React.createElement(
+                    'div',
+                    { className: 'note-tags' },
+                    note.tags.map((tag, index) => 
+                        React.createElement(
+                            'div',
+                            { 
+                                key: index, 
+                                className: 'note-tag',
+                                onClick: (e) => handleTagClick(e, tag)
+                            },
+                            tag
+                        )
+                    )
+                ),
+                React.createElement(
+                    'div',
+                    { className: 'note-footer' },
+                    React.createElement(
+                        'div',
+                        null,
+                        formatDate(note.updatedAt)
+                    ),
+                    showActions && React.createElement(
+                        'div',
+                        { className: 'action-buttons' },
+                        React.createElement(
+                            'div',
+                            {
+                                className: 'icon-button',
+                                onClick: handleFavoriteClick
+                            },
+                            React.createElement('i', { 
+                                className: note.isFavorite ? 'fas fa-star' : 'far fa-star',
+                                style: { color: note.isFavorite ? '#f4b400' : '' }
+                            })
+                        ),
+                        React.createElement(
+                            'div',
+                            {
+                                className: 'icon-button',
+                                onClick: handleDeleteClick
+                            },
+                            React.createElement('i', { className: 'fas fa-trash' })
+                        )
+                    )
+                )
+            );
+        }
+
+        // Note Form Component
+        function NoteForm({ onSave, editingNote, onCancel }) {
+            const [title, setTitle] = useState('');
+            const [content, setContent] = useState('');
+            const [tags, setTags] = useState([]);
+            const [currentTag, setCurrentTag] = useState('');
+            const [isExpanded, setIsExpanded] = useState(false);
+            const formRef = useRef(null);
+
+            useEffect(() => {
+                if (editingNote) {
+                    setTitle(editingNote.title || '');
+                    setContent(editingNote.content || '');
+                    setTags(editingNote.tags || []);
+                    setIsExpanded(true);
+                }
+            }, [editingNote]);
+
+            useEffect(() => {
+                // Auto-expand when content is entered
+                if ((title || content) && !isExpanded) {
+                    setIsExpanded(true);
+                }
+            }, [title, content, isExpanded]);
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                if (content.trim()) {
+                    onSave({
+                        title: title.trim(),
+                        content: content.trim(),
+                        tags: tags
+                    });
+                    setTitle('');
+                    setContent('');
+                    setTags([]);
+                    setIsExpanded(false);
+                }
+            };
+
+            const handleCancel = () => {
+                setTitle('');
+                setContent('');
+                setTags([]);
+                setIsExpanded(false);
+                if (onCancel) onCancel();
+            };
+
+            const addTag = (e) => {
+                if (e.key === 'Enter' && currentTag.trim()) {
+                    e.preventDefault();
+                    if (!tags.includes(currentTag.trim())) {
+                        setTags([...tags, currentTag.trim()]);
+                    }
+                    setCurrentTag('');
+                }
+            };
+
+            const removeTag = (index) => {
+                setTags(tags.filter((_, i) => i !== index));
+            };
+
+            const handleColorClick = () => {
+                // In a real app, this would open a color picker
+                alert('Color picker would open here!');
+            };
+
+            const handleImageClick = () => {
+                // In a real app, this would open an image uploader
+                alert('Image uploader would open here!');
+            };
+
+            const handleArchiveClick = () => {
+                // In a real app, this would archive the note
+                alert('Note would be archived!');
+            };
+
+            return React.createElement(
+                'div',
+                { className: 'note-form', ref: formRef },
+                React.createElement(
+                    'form',
+                    { onSubmit: handleSubmit },
+                    isExpanded && React.createElement('input', {
+                        type: 'text',
+                        className: 'note-form-title',
+                        placeholder: 'Title',
+                        value: title,
+                        onChange: (e) => setTitle(e.target.value)
+                    }),
+                    React.createElement('textarea', {
+                        className: 'note-form-content',
+                        placeholder: 'Take a note...',
+                        value: content,
+                        onChange: (e) => setContent(e.target.value),
+                        onFocus: () => setIsExpanded(true)
+                    }),
+                    isExpanded && React.createElement(
+                        'div',
+                        { className: 'note-tags' },
+                        tags.map((tag, index) => 
+                            React.createElement(
+                                'div',
+                                { 
+                                    key: index, 
+                                    className: 'note-tag',
+                                    onClick: () => removeTag(index)
+                                },
+                                tag,
+                                React.createElement('i', { 
+                                    className: 'fas fa-times',
+                                    style: { marginLeft: '4px' }
+                                })
+                            )
+                        ),
+                        React.createElement('input', {
+                            type: 'text',
+                            placeholder: 'Add tag...',
+                            value: currentTag,
+                            onChange: (e) => setCurrentTag(e.target.value),
+                            onKeyDown: addTag,
+                            style: {
+                                border: 'none',
+                                outline: 'none',
+                                background: 'transparent',
+                                fontSize: '12px',
+                                color: 'var(--text-secondary)',
+                                width: '80px'
+                            }
+                        })
+                    ),
+                    isExpanded && React.createElement(
+                        'div',
+                        { className: 'note-form-actions' },
+                        React.createElement(
+                            'div',
+                            { className: 'action-buttons' },
+                            React.createElement(
+                                'div',
+                                { 
+                                    className: 'icon-button',
+                                    onClick: handleColorClick
+                                },
+                                React.createElement('i', { className: 'fas fa-palette' })
+                            ),
+                            React.createElement(
+                                'div',
+                                { 
+                                    className: 'icon-button',
+                                    onClick: handleImageClick
+                                },
+                                React.createElement('i', { className: 'fas fa-image' })
+                            ),
+                            React.createElement(
+                                'div',
+                                { 
+                                    className: 'icon-button',
+                                    onClick: handleArchiveClick
+                                },
+                                React.createElement('i', { className: 'fas fa-archive' })
+                            ),
+                            React.createElement(
+                                'div',
+                                { className: 'icon-button' },
+                                React.createElement('i', { className: 'fas fa-ellipsis-v' })
+                            )
+                        ),
+                        React.createElement(
+                            'div',
+                            null,
+                            React.createElement(
+                                'button',
+                                {
+                                    type: 'button',
+                                    onClick: handleCancel,
+                                    style: {
+                                        background: 'transparent',
+                                        border: 'none',
+                                        color: 'var(--text-secondary)',
+                                        padding: '8px 16px',
+                                        cursor: 'pointer',
+                                        marginRight: '8px'
+                                    }
+                                },
+                                'Cancel'
+                            ),
+                            React.createElement(
+                                'button',
+                                {
+                                    type: 'submit',
+                                    className: 'submit-button',
+                                    disabled: !content.trim()
+                                },
+                                editingNote ? 'Save' : 'Add'
+                            )
+                        )
+                    )
+                )
+            );
+        }
+
+        // Empty State Component
+        function EmptyState({ view, onCreateNote }) {
+            const getEmptyStateContent = () => {
+                switch(view) {
+                    case 'favorites':
+                        return {
+                            icon: 'far fa-star',
+                            title: 'No favorite notes',
+                            description: 'Notes you mark as favorite will appear here'
+                        };
+                    case 'archived':
+                        return {
+                            icon: 'fas fa-archive',
+                            title: 'No archived notes',
+                            description: 'Your archived notes will appear here'
+                        };
+                    case 'trash':
+                        return {
+                            icon: 'fas fa-trash',
+                            title: 'No notes in trash',
+                            description: 'Deleted notes will appear here'
+                        };
+                    default:
+                        return {
+                            icon: 'fas fa-sticky-note',
+                            title: 'No notes yet',
+                            description: 'Create your first note to get started'
+                        };
+                }
+            };
+
+            const content = getEmptyStateContent();
+
+            return React.createElement(
+                'div',
+                { className: 'empty-state' },
+                React.createElement(
+                    'div',
+                    { className: 'empty-icon' },
+                    React.createElement('i', { className: content.icon })
+                ),
+                React.createElement(
+                    'div',
+                    { className: 'empty-title' },
+                    content.title
+                ),
+                React.createElement(
+                    'div',
+                    { className: 'empty-description' },
+                    content.description
+                ),
+                view === 'all' && React.createElement(
+                    'button',
+                    {
+                        className: 'submit-button pulse',
+                        onClick: onCreateNote
+                    },
+                    'Create Your First Note'
+                )
+            );
+        }
+
+        // Main App Component
+        function MyNotesApp() {
+            const [notes, setNotes] = useState([]);
+            const [activeView, setActiveView] = useState('all');
+            const [searchTerm, setSearchTerm] = useState('');
+            const [editingNote, setEditingNote] = useState(null);
+            const [isDark, setIsDark] = useState(false);
+            const [settings, setSettings] = useState({ theme: 'light' });
+            const [activeTag, setActiveTag] = useState(null);
+
+            // Load data on startup
+            useEffect(() => {
+                const loadedNotes = storage.getNotes();
+                const loadedSettings = storage.getSettings();
+                
+                setNotes(loadedNotes);
+                setSettings(loadedSettings);
+                setIsDark(loadedSettings.theme === 'dark');
+            }, []);
+
+            // Save data when changed
+            useEffect(() => {
+                storage.saveNotes(notes);
+            }, [notes]);
+
+            useEffect(() => {
+                storage.saveSettings(settings);
+                setIsDark(settings.theme === 'dark');
+            }, [settings]);
+
+            // Apply theme to body
+            useEffect(() => {
+                document.body.className = isDark ? 'dark' : 'light';
+            }, [isDark]);
+
+            const handleSaveNote = (noteData) => {
+                if (editingNote) {
+                    setNotes(notes.map(note => 
+                        note.id === editingNote.id 
+                            ? { 
+                                ...note, 
+                                ...noteData, 
+                                updatedAt: new Date().toISOString() 
+                            }
+                            : note
+                    ));
+                    setEditingNote(null);
+                } else {
+                    const newNote = {
+                        id: Date.now().toString(),
+                        ...noteData,
+                        isFavorite: false,
+                        isArchived: false,
+                        isTrashed: false,
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    };
+                    setNotes([newNote, ...notes]);
+                }
+            };
+
+            const handleDeleteNote = (noteId) => {
+                setNotes(notes.map(note => 
+                    note.id === noteId 
+                        ? { ...note, isTrashed: true, updatedAt: new Date().toISOString() }
+                        : note
+                ));
+            };
+
+            const handleToggleFavorite = (noteId, isFavorite) => {
+                setNotes(notes.map(note => 
+                    note.id === noteId 
+                        ? { ...note, isFavorite, updatedAt: new Date().toISOString() }
+                        : note
+                ));
+            };
+
+            const handleEditNote = (note) => {
+                setEditingNote(note);
+            };
+
+            const handleCancelEdit = () => {
+                setEditingNote(null);
+            };
+
+            const handleCreateNote = () => {
+                setEditingNote({});
+            };
+
+            const toggleTheme = () => {
+                const newTheme = isDark ? 'light' : 'dark';
+                setSettings({ ...settings, theme: newTheme });
+            };
+
+            const handleTagClick = (tag) => {
+                setActiveTag(tag);
+            };
+
+            const handleTagFilter = (tag) => {
+                setActiveTag(tag);
+            };
+
+            // Get all unique tags from notes
+            const getAllTags = () => {
+                const allTags = notes.flatMap(note => note.tags || []);
+                return [...new Set(allTags)].sort();
+            };
+
+            // Filter notes based on active view, search term, and active tag
+            const filteredNotes = notes.filter(note => {
+                // Filter by view
+                let viewMatch = true;
+                switch(activeView) {
+                    case 'favorites':
+                        viewMatch = note.isFavorite && !note.isTrashed;
+                        break;
+                    case 'archived':
+                        viewMatch = note.isArchived && !note.isTrashed;
+                        break;
+                    case 'trash':
+                        viewMatch = note.isTrashed;
+                        break;
+                    default:
+                        viewMatch = !note.isArchived && !note.isTrashed;
+                }
+                
+                // Filter by search term
+                const searchMatch = !searchTerm || 
+                    (note.title && note.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                    note.content.toLowerCase().includes(searchTerm.toLowerCase());
+                
+                // Filter by tag
+                const tagMatch = !activeTag || (note.tags && note.tags.includes(activeTag));
+                
+                return viewMatch && searchMatch && tagMatch;
+            });
+
+            return React.createElement(
+                'div',
+                { className: 'app-container' },
+                React.createElement(Sidebar, {
+                    activeView: activeView,
+                    onViewChange: setActiveView
+                }),
+                React.createElement(
+                    'div',
+                    { className: 'main-content' },
+                    React.createElement(
+                        'div',
+                        { className: 'search-bar' },
+                        React.createElement('i', { className: 'fas fa-search', style: { color: 'var(--text-secondary)' } }),
+                        React.createElement('input', {
+                            type: 'text',
+                            className: 'search-input',
+                            placeholder: 'Search notes...',
+                            value: searchTerm,
+                            onChange: (e) => setSearchTerm(e.target.value)
+                        })
+                    ),
+                    
+                    React.createElement(NoteForm, {
+                        onSave: handleSaveNote,
+                        editingNote: editingNote,
+                        onCancel: handleCancelEdit
+                    }),
+
+                    activeView === 'all' && React.createElement(TagFilter, {
+                        tags: getAllTags(),
+                        activeTag: activeTag,
+                        onTagFilter: handleTagFilter
+                    }),
+                    
+                    filteredNotes.length > 0 
+                        ? React.createElement(
+                            'div',
+                            { className: 'notes-grid' },
+                            filteredNotes.map(note =>
+                                React.createElement(NoteCard, {
+                                    key: note.id,
+                                    note: note,
+                                    onEdit: handleEditNote,
+                                    onToggleFavorite: handleToggleFavorite,
+                                    onDelete: handleDeleteNote,
+                                    onTagClick: handleTagClick
+                                })
+                            )
+                        )
+                        : React.createElement(EmptyState, {
+                            view: activeView,
+                            onCreateNote: handleCreateNote
+                        })
+                ),
+                
+                !editingNote && React.createElement(
+                    'div',
+                    {
+                        className: 'floating-button',
+                        onClick: handleCreateNote
+                    },
+                    React.createElement('i', { className: 'fas fa-plus' })
+                ),
+                
+                React.createElement(
+                    'div',
+                    {
+                        className: 'theme-toggle',
+                        onClick: toggleTheme
+                    },
+                    React.createElement('i', { 
+                        className: isDark ? 'fas fa-sun' : 'fas fa-moon' 
+                    })
+                )
+            );
+        }
+
+        // Render the app
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(React.createElement(MyNotesApp));
+    </script>
+</body>
+</html>
